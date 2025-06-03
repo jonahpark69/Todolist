@@ -1,0 +1,16 @@
+# Ignorer le fichier de données (optionnel)
+data/taches.txt
+
+# Fichiers système macOS
+.DS_Store
+
+# Dossiers d’éditeurs de code (comme VS Code)
+.vscode/
+
+# Fichiers temporaires
+*.log
+*.tmp
+
+# Fichiers de sauvegarde
+*~
+*.bak
