@@ -1,6 +1,5 @@
 Réviser PHP|normale
-Boire un café|urgente
-Créer une to-do list|normale
 Aller chercher du pain|normale
 Faire les courses|urgente
 Apprendre le coréen|importante
+Faire un cours d'anglais|importante

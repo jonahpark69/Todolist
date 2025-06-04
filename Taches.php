@@ -1,52 +1,49 @@
 <?php
 
-// 🧱 Interface : définit ce que tout système de stockage (fichier, base de données...) doit faire
+require_once 'Tache.php'; // on importe la classe Tache
+
+// Interface du stockage
 interface TacheStorage {
-    public function charger(): array;                      // Méthode pour charger les tâches
-    public function enregistrer(array $taches): void;      // Méthode pour enregistrer les tâches
+    public function charger(): array;
+    public function enregistrer(array $taches): void;
 }
 
-// 📦 Classe concrète : gère le stockage des tâches dans un fichier texte
+// Stockage dans un fichier texte
 class TacheStorageFichier implements TacheStorage {
-    private string $chemin;  // Chemin vers le fichier texte
+    private string $chemin;
 
-    // 🔧 Constructeur : on lui fournit le chemin vers le fichier
     public function __construct(string $chemin) {
         $this->chemin = $chemin;
     }
 
-    // 📥 Lire et transformer chaque ligne du fichier en tâche
+    // Charger le fichier et transformer chaque ligne en objet Tache
     public function charger(): array {
         if (!file_exists($this->chemin)) {
-            return []; // Aucun fichier = aucune tâche
+            return [];
         }
 
         $lignes = file($this->chemin, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         $taches = [];
 
         foreach ($lignes as $ligne) {
-            $parts = explode('|', $ligne); // Chaque ligne est sous la forme texte|priorite
-            $texte = isset($parts[0]) ? trim($parts[0]) : '';
-            $priorite = isset($parts[1]) ? trim($parts[1]) : 'normale'; // par défaut
-            $taches[] = ['texte' => $texte, 'priorite' => $priorite];
+            $tache = Tache::fromLigne($ligne);
+            if ($tache !== null) {
+                $taches[] = $tache;
+            }
         }
 
-        return $taches; // On retourne toutes les tâches sous forme de tableau
+        return $taches;
     }
 
-    // 📤 Convertir un tableau de tâches en texte et l’écrire dans le fichier
+    // Convertir chaque Tache en ligne de texte puis enregistrer dans le fichier
     public function enregistrer(array $taches): void {
         $contenu = '';
-
         foreach ($taches as $tache) {
-            // Formater chaque ligne sous forme "texte|priorité"
-            $ligne = trim($tache['texte']) . '|' . trim($tache['priorite']);
-            $contenu .= $ligne . PHP_EOL;
+            $contenu .= $tache->toLigne() . PHP_EOL;
         }
-
-        // Écrire dans le fichier
         file_put_contents($this->chemin, $contenu);
     }
 }
+
 
 
