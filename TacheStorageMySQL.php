@@ -1,57 +1,52 @@
 <?php
+require_once 'Tache.php';
+require_once 'config.php';
+require_once 'Taches.php';
 
-require_once 'config.php';   // ⚙️ Connexion PDO via fichier séparé
-require_once 'Tache.php';    // 📦 Modèle de données
-
-class TacheStorageMySQL {
+class TacheStorageMySQL implements TacheStorage {
     private PDO $pdo;
 
     public function __construct() {
-        // 💾 Connexion à MySQL (via config.php)
         $this->pdo = getPDO();
     }
 
-    /**
-     * 🔽 Charge toutes les tâches depuis la BDD
-     * @return Tache[]
-     */
+    // 🔁 Charger toutes les tâches depuis MySQL
     public function charger(): array {
         $taches = [];
+        $sql = "SELECT texte, priorite, terminee FROM taches";
+        $result = $this->pdo->query($sql);
 
-        $stmt = $this->pdo->query("SELECT texte, priorite, terminee FROM taches");
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $texte = $row['texte'];
-            $priorite = $row['priorite'];
-            $terminee = (bool) $row['terminee']; // 🔄 convertit 1/0 en true/false
+        if ($result !== false) {
+            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                $texte = isset($row['texte']) ? (string)$row['texte'] : '';
+                $priorite = isset($row['priorite']) ? (string)$row['priorite'] : 'normale';
+                $terminee = isset($row['terminee']) ? (bool)$row['terminee'] : false;
 
-            $taches[] = new Tache($texte, $priorite, $terminee);
+                $taches[] = new Tache($texte, $priorite, $terminee);
+            }
         }
 
         return $taches;
     }
 
-    /**
-     * 💾 Enregistre toutes les tâches dans la base
-     * ⚠️ Efface tout et réinsère tout à chaque appel
-     * @param Tache[] $taches
-     */
+    // 💾 Enregistrer toutes les tâches en supprimant d’abord l'existant
     public function enregistrer(array $taches): void {
-        // 🧹 Supprime toutes les tâches existantes
+        // On efface toutes les lignes
         $this->pdo->exec("DELETE FROM taches");
 
-        // 🔁 Prépare l’insertion
-        $stmt = $this->pdo->prepare("
-            INSERT INTO taches (texte, priorite, terminee)
-            VALUES (:texte, :priorite, :terminee)
-        ");
+        // Requête préparée pour ajouter les tâches
+        $stmt = $this->pdo->prepare("INSERT INTO taches (texte, priorite, terminee) VALUES (:texte, :priorite, :terminee)");
 
-        // 💡 Enregistre chaque tâche
         foreach ($taches as $tache) {
-            $stmt->execute([
-                ':texte' => $tache->getTexte(),
-                ':priorite' => $tache->getPriorite(),
-                ':terminee' => $tache->estTerminee() ? 1 : 0
-            ]);
+            if ($tache instanceof Tache) {
+                $stmt->execute([
+                    'texte' => $tache->getTexte(),
+                    'priorite' => $tache->getPriorite(),
+                    'terminee' => $tache->estTerminee() ? 1 : 0
+                ]);
+            }
         }
     }
 }
+
+

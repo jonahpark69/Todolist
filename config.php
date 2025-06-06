@@ -1,7 +1,7 @@
 <?php
 function getPDO(): PDO {
     return new PDO(
-        'mysql:host=localhost;dbname=todolist;charset=utf8mb4',
+        'mysql:host=localhost;dbname=todolist_db;charset=utf8mb4',
         'root',        // 🧑 Identifiant par défaut de MAMP
         'root',        // 🔒 Mot de passe par défaut de MAMP
         [
