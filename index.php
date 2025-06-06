@@ -2,14 +2,16 @@
 // 🟢 Démarrage de la session pour gérer les messages (succès, erreur)
 session_start();
 
-// 🔗 Inclusion du système de stockage des tâches
-require_once 'taches.php';
+// 🔗 Inclusion du modèle
+require_once 'Tache.php';
 
-// 📁 Instanciation du gestionnaire de tâches en mode fichier texte
-$storage = new TacheStorageFichier("data/taches.txt");
+// 🔗 Inclusion du gestionnaire MySQL
+require_once 'TacheStorageMySQL.php';
+$storage = new TacheStorageMySQL();
 
 // 📥 Chargement initial des tâches
 $taches = $storage->charger();
+
 
 //////////////////////////
 // ✍️ TRAITEMENT DU FORMULAIRE D’AJOUT DE TÂCHE
