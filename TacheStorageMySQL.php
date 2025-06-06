@@ -10,10 +10,10 @@ class TacheStorageMySQL implements TacheStorage {
         $this->pdo = getPDO();
     }
 
-    // 🔁 Charger toutes les tâches depuis MySQL
+    // 🔁 Charger toutes les tâches depuis MySQL (avec l'ID !)
     public function charger(): array {
         $taches = [];
-        $sql = "SELECT texte, priorite, terminee FROM taches";
+        $sql = "SELECT id, texte, priorite, terminee FROM taches"; // ✅ ajout de l'id
         $result = $this->pdo->query($sql);
 
         if ($result !== false) {
@@ -21,8 +21,11 @@ class TacheStorageMySQL implements TacheStorage {
                 $texte = isset($row['texte']) ? (string)$row['texte'] : '';
                 $priorite = isset($row['priorite']) ? (string)$row['priorite'] : 'normale';
                 $terminee = isset($row['terminee']) ? (bool)$row['terminee'] : false;
+                $id = isset($row['id']) ? (int)$row['id'] : 0; // ✅ récupération de l'id
 
-                $taches[] = new Tache($texte, $priorite, $terminee);
+                $tache = new Tache($texte, $priorite, $terminee);
+                $tache->setId($id); // ✅ on assigne l'id à l'objet
+                $taches[] = $tache;
             }
         }
 
@@ -48,5 +51,6 @@ class TacheStorageMySQL implements TacheStorage {
         }
     }
 }
+
 
 

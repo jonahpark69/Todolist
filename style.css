@@ -1,90 +1,117 @@
-/* 🎯 Style général de la page */
+
+/* 🎯 Style général */
 body {
-    font-family: sans-serif;         /* Police sans empattement (propre et lisible) */
-    background-color: #f4f4f4;       /* Fond gris clair pour la lisibilité */
-    padding: 2rem;                   /* Espace intérieur */
-    max-width: 600px;               /* Limite la largeur de la to-do */
-    margin: auto;                    /* Centre la page horizontalement */
+    font-family: sans-serif;
+    background-color: #f4f4f4;
+    padding: 2rem;
+    max-width: 600px;
+    margin: auto;
 }
 
-/* 🧾 Titre principal */
+/* 🧾 Titre */
 h1 {
-    color: #333;                     /* Texte foncé */
-    margin-bottom: 1rem;            /* Espace sous le titre */
+    color: #333;
+    margin-bottom: 1rem;
 }
 
-/* 📥 Formulaire d’ajout */
+/* 📥 Formulaire */
 form {
-    margin-bottom: 1.5rem;           /* Espace sous le formulaire */
+    margin-bottom: 1.5rem;
 }
 
-/* 📌 Champ de texte */
+/* 🖊️ Champ texte */
 input[type="text"] {
     padding: 0.5rem;
     font-size: 1rem;
-    width: 70%;                      /* Largeur relative */
+    width: 70%;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-/* 🟩 Bouton Ajouter */
+/* 🟩 Bouton */
 button {
     padding: 0.5rem 1rem;
     font-size: 1rem;
-    background-color: #4CAF50;       /* Vert */
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 button:hover {
-    background-color: #45a049;       /* Vert un peu plus foncé au survol */
+    background-color: #45a049;
 }
 
 /* 📋 Liste des tâches */
 ul {
-    list-style: none;               /* Supprime les puces */
+    list-style: none;
     padding-left: 0;
 }
 
-/* 💬 Message de confirmation ou erreur */
+/* 💬 Message */
 .message {
     margin: 1rem 0;
     padding: 1rem;
-    background-color: #d1f7c4;       /* Fond vert clair */
-    border-left: 6px solid #27ae60;  /* Bordure verte */
+    background-color: #d1f7c4;
+    border-left: 6px solid #27ae60;
     color: #14532d;
     font-size: 1rem;
     font-weight: 600;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: opacity 0.6s ease-out; /* Transition pour disparition douce */
+    transition: opacity 0.6s ease-out;
 }
 
-/* 🎨 Couleurs par priorité */
-li.normale {
-    border-left: 5px solid #2ecc71;  /* Vert */
-}
-li.importante {
-    border-left: 5px solid #f1c40f;  /* Jaune */
-}
-li.urgente {
-    border-left: 5px solid #e74c3c;  /* Rouge */
+/* ✅ Tâches terminées */
+.terminee span {
+    text-decoration: line-through;
+    color: grey;
+    opacity: 0.6;
 }
 
-/* 🧱 Mise en forme d’une tâche */
-li {
-    display: flex;                   /* Permet d’aligner texte + badge + bouton */
-    justify-content: space-between;
-    align-items: center;             /* Centre verticalement tous les éléments */
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    border-radius: 4px;
-    background: white;
+/* 🧱 Bloc tâche */
+.tache {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border-radius: 5px;
+    margin-bottom: 8px;
     box-shadow: 0 0 3px rgba(0,0,0,0.1);
+    position: relative;
 }
 
-/* 🏷️ Badge qui affiche la priorité */
+/* 🎨 Bande verticale de priorité */
+.tache::before {
+    content: "";
+    display: block;
+    width: 6px;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background-color: transparent; /* Sera surchargé */
+    z-index: 1;
+}
+
+/* 🟢 Priorité normale */
+.priorite-normale::before {
+    background-color: #2ecc71;
+}
+
+/* 🟡 Priorité importante */
+.priorite-importante::before {
+    background-color: #f1c40f;
+}
+
+/* 🔴 Priorité urgente */
+.priorite-urgente::before {
+    background-color: #e74c3c;
+}
+
+/* 🏷️ Badge */
 .badge {
     margin-left: 1rem;
     padding: 0.2rem 0.6rem;
@@ -97,11 +124,7 @@ li {
     line-height: 1.2;
 }
 
-/* 🖋️ Texte de la tâche (grandit si nécessaire) */
+/* 📄 Texte étirable */
 .texte {
-    flex-grow: 1;                    /* Prend toute la largeur restante */
+    flex-grow: 1;
 }
-
-
-
-

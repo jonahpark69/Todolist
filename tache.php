@@ -1,39 +1,52 @@
 <?php
 
 class Tache {
-    private string $texte;
-    private string $priorite;
-    private bool $terminee;
+    private int $id = 0;              // 🆔 Identifiant unique de la tâche (issu de la BDD)
+    private string $texte;           // 📝 Contenu de la tâche
+    private string $priorite;        // 🔺 Priorité : normale, importante, urgente
+    private bool $terminee;          // ☑️ Statut : terminée ou non
 
-    // ✅ Le constructeur accepte maintenant $terminee
-    public function __construct(string $texte, string $priorite, bool $terminee = false) {
+    // 🧱 Constructeur
+    public function __construct(string $texte, string $priorite = 'normale', bool $terminee = false) {
         $this->texte = $texte;
         $this->priorite = $priorite;
         $this->terminee = $terminee;
     }
 
+    // 🔄 Getter / Setter pour ID
+    public function getId(): int {
+        return $this->id;
+    }
+
+    public function setId(int $id): void {
+        $this->id = $id;
+    }
+
+    // 🔄 Getter / Setter pour texte
     public function getTexte(): string {
         return $this->texte;
     }
 
-    public function getPriorite(): string {
-        return $this->priorite;
-    }
-
-    public function estTerminee(): bool {
-        return $this->terminee;
-    }
-
-    public function marquerCommeTerminee(bool $val): void {
-        $this->terminee = $val;
-    }
-
-    // BONUS si tu veux ajouter un setter plus tard :
     public function setTexte(string $texte): void {
         $this->texte = $texte;
+    }
+
+    // 🔄 Getter / Setter pour priorité
+    public function getPriorite(): string {
+        return $this->priorite;
     }
 
     public function setPriorite(string $priorite): void {
         $this->priorite = $priorite;
     }
+
+    // 🔄 Getter / Setter pour terminé
+    public function estTerminee(): bool {
+        return $this->terminee;
+    }
+
+    public function setTerminee(bool $terminee): void {
+        $this->terminee = $terminee;
+    }
 }
+
