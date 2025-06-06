@@ -115,7 +115,7 @@ if (isset($_GET['supprimer'])) {
     </ul>
 
     <!-- 🔗 JavaScript optionnel -->
-    <script src="script.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
 
