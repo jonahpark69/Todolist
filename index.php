@@ -5,8 +5,10 @@ require_once 'Tache.php';
 require_once 'Taches.php';
 require_once 'TacheStorageMySQL.php';
 
-$storage = new TacheStorageMySQL();
-$taches = $storage->charger();
+$tacheStorage = new TacheStorageMySQL();
+
+$taches = $tacheStorage->lireToutes();
+
 
 
 
@@ -80,7 +82,10 @@ if (isset($_GET['supprimer'])) {
         <button type="submit">Ajouter</button>
     </form>
 
-    <ul class="taches">
+
+
+
+   <ul class="taches">
     <?php foreach ($taches as $index => $tache) : ?>
         <li class="tache <?= 'priorite-' . htmlspecialchars($tache->getPriorite()) ?> <?= $tache->estTerminee() ? 'terminee' : '' ?>">
             <input 
@@ -96,6 +101,7 @@ if (isset($_GET['supprimer'])) {
         </li>
     <?php endforeach; ?>
 </ul>
+
 
 
 

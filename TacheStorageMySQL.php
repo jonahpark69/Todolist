@@ -1,56 +1,58 @@
 <?php
-require_once 'Tache.php';
-require_once 'config.php';
-require_once 'Taches.php';
 
-class TacheStorageMySQL implements TacheStorage {
-    private PDO $pdo;
+require_once 'Tache.php';
+
+class TacheStorageMySQL {
+    private $pdo;
 
     public function __construct() {
-        $this->pdo = getPDO();
+        $this->pdo = new PDO(
+            'mysql:host=localhost;dbname=todolist_db;charset=utf8',
+            'root',
+            'root'
+        );
     }
 
-    // 🔁 Charger toutes les tâches depuis MySQL (avec l'ID !)
-    public function charger(): array {
+    public function lireToutes() {
         $taches = [];
-        $sql = "SELECT id, texte, priorite, terminee FROM taches"; // ✅ ajout de l'id
-        $result = $this->pdo->query($sql);
-
-        if ($result !== false) {
-            while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-                $texte = isset($row['texte']) ? (string)$row['texte'] : '';
-                $priorite = isset($row['priorite']) ? (string)$row['priorite'] : 'normale';
-                $terminee = isset($row['terminee']) ? (bool)$row['terminee'] : false;
-                $id = isset($row['id']) ? (int)$row['id'] : 0; // ✅ récupération de l'id
-
-                $tache = new Tache($texte, $priorite, $terminee);
-                $tache->setId($id); // ✅ on assigne l'id à l'objet
-                $taches[] = $tache;
-            }
+        $query = $this->pdo->query("SELECT * FROM taches");
+        while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            $taches[] = new Tache(
+                $row['id'],
+                $row['texte'],
+                $row['priorite'],
+                $row['terminee']
+            );
         }
-
         return $taches;
     }
 
-    // 💾 Enregistrer toutes les tâches en supprimant d’abord l'existant
-    public function enregistrer(array $taches): void {
-        // On efface toutes les lignes
-        $this->pdo->exec("DELETE FROM taches");
-
-        // Requête préparée pour ajouter les tâches
+    public function creer(Tache $tache) {
         $stmt = $this->pdo->prepare("INSERT INTO taches (texte, priorite, terminee) VALUES (:texte, :priorite, :terminee)");
+        $stmt->execute([
+            ':texte' => $tache->getTexte(),
+            ':priorite' => $tache->getPriorite(),
+            ':terminee' => $tache->estTerminee()
+        ]);
+        $tache->setId($this->pdo->lastInsertId());
+        return $tache;
+    }
 
-        foreach ($taches as $tache) {
-            if ($tache instanceof Tache) {
-                $stmt->execute([
-                    'texte' => $tache->getTexte(),
-                    'priorite' => $tache->getPriorite(),
-                    'terminee' => $tache->estTerminee() ? 1 : 0
-                ]);
-            }
-        }
+    public function supprimer($id) {
+        $stmt = $this->pdo->prepare("DELETE FROM taches WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    }
+
+    // ✅ Nouvelle méthode pour mise à jour AJAX
+    public function marquerCommeTerminee($id, $terminee) {
+        $stmt = $this->pdo->prepare("UPDATE taches SET terminee = :terminee WHERE id = :id");
+        $stmt->execute([
+            ':terminee' => $terminee,
+            ':id' => $id
+        ]);
     }
 }
+
 
 
 
