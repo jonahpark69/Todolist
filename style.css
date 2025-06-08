@@ -128,3 +128,31 @@ ul {
 .texte {
     flex-grow: 1;
 }
+
+.champ-recherche {
+  width: 100%;
+  padding: 8px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.tri {
+  margin-bottom: 1rem;
+}
+
+.tri button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.tri button:hover {
+  background-color: #ddd;
+}
+

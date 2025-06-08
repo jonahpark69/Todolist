@@ -1,54 +1,121 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const app = {
-        init() {
-            this.handleFlashMessage();
-            this.initCheckboxTerminee(); // 👈 AJOUT ICI
-            // Tu ajouteras ici d’autres fonctions comme :
-            // this.initToggleTache();
-            // this.initFiltrage();
-        },
+app = {
+  taches: [],
 
-        handleFlashMessage() {
-            const message = document.querySelector('.message');
-            if (message) {
-                setTimeout(() => {
-                    message.style.opacity = '0';
-                    message.style.transition = 'opacity 0.6s ease-out';
-                    setTimeout(() => message.remove(), 700);
-                }, 3000);
-            }
-        },
+  init: function () {
+    this.taches = Array.from(document.querySelectorAll('.tache'));
+    this.initEditionInline();
+    this.initStatut();
+    this.initRecherche();
+    this.initTri();
+  },
 
-        initCheckboxTerminee() {
-            const checkboxes = document.querySelectorAll('.checkbox-terminee');
+  initEditionInline: function () {
+    document.querySelectorAll('.texte').forEach(texteEl => {
+      texteEl.addEventListener('dblclick', () => {
+        const ancienTexte = texteEl.textContent.trim();
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = ancienTexte;
+        input.className = 'border border-gray-300 rounded p-1 w-full';
 
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', async (e) => {
-                    const id = e.target.dataset.id;
-                    const terminee = e.target.checked ? 1 : 0;
+        texteEl.replaceWith(input);
+        input.focus();
 
-                    try {
-                        const response = await fetch('update-terminee.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            body: `id=${id}&terminee=${terminee}`
-                        });
+        input.addEventListener('blur', () => {
+          const nouveauTexte = input.value.trim();
+          const id = input.closest('.tache').querySelector('.checkbox-terminee').dataset.id;
 
-                        if (!response.ok) {
-                            throw new Error("Erreur serveur");
-                        }
+          fetch('update-texte.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'id=' + encodeURIComponent(id) + '&texte=' + encodeURIComponent(nouveauTexte)
+          })
+          .then(() => location.reload());
+        });
+      });
+    });
+  },
 
-                        console.log(`Tâche ${id} mise à jour`);
-                    } catch (err) {
-                        alert("Échec de la mise à jour");
-                    }
-                });
-            });
-        }
+  initStatut: function () {
+    document.querySelectorAll('.checkbox-terminee').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const id = checkbox.dataset.id;
+        const terminee = checkbox.checked ? 1 : 0;
+
+        fetch('update-terminee.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: 'id=' + encodeURIComponent(id) + '&terminee=' + encodeURIComponent(terminee)
+        });
+      });
+    });
+  },
+
+  initRecherche: function () {
+    const champ = document.getElementById('recherche');
+    champ.addEventListener('input', () => {
+      const valeur = champ.value.toLowerCase();
+      this.taches.forEach(tache => {
+        const texte = tache.querySelector('.texte').textContent.toLowerCase();
+        tache.style.display = texte.includes(valeur) ? '' : 'none';
+      });
+    });
+  },
+
+  initTri: function () {
+    document.querySelectorAll('[data-tri]').forEach(bouton => {
+      bouton.addEventListener('click', () => {
+        const critere = bouton.getAttribute('data-tri');
+        this.trier(critere);
+      });
+    });
+  },
+
+  trier: function (type) {
+    const getTexte = (el) => el.querySelector('.texte').textContent.toLowerCase();
+    const getPriorite = (el) => {
+      const priorite = el.dataset.priorite;
+      const ordre = ['urgente', 'importante', 'normale'];
+      return ordre.indexOf(priorite);
     };
 
-    app.init();
+    const getter = type === 'texte' ? getTexte : getPriorite;
+
+    this.taches.sort((a, b) => {
+      const valA = getter(a);
+      const valB = getter(b);
+      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    });
+
+    const parent = this.taches[0].parentNode;
+    this.taches.forEach(tache => parent.appendChild(tache));
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => app.init());
+
+
+// Confirmation personnalisée avec modale
+document.querySelectorAll('a[href*="supprimer="]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const url = link.getAttribute('href');
+    const modal = document.getElementById('modal-confirm');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    confirmBtn.setAttribute('href', url);
+    modal.classList.remove('hidden');
+
+    cancelBtn.onclick = () => {
+      modal.classList.add('hidden');
+      confirmBtn.setAttribute('href', '#');
+    };
+  });
 });
+
 

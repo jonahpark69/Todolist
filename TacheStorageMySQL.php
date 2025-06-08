@@ -51,6 +51,15 @@ class TacheStorageMySQL {
             ':id' => $id
         ]);
     }
+
+    public function modifierTexte($id, $texte) {
+    $stmt = $this->pdo->prepare("UPDATE taches SET texte = :texte WHERE id = :id");
+    $stmt->execute([
+        ':texte' => $texte,
+        ':id' => $id
+    ]);
+}
+
 }
 
 

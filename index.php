@@ -1,115 +1,154 @@
 <?php
-session_start();
-
-require_once 'Tache.php';
-require_once 'Taches.php';
 require_once 'TacheStorageMySQL.php';
+require_once 'Tache.php';
 
-$tacheStorage = new TacheStorageMySQL();
+$storage = new TacheStorageMySQL();
+$message = "";
 
-$taches = $tacheStorage->lireToutes();
-
-
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $texte = isset($_POST['tache']) && is_string($_POST['tache']) ? trim($_POST['tache']) : '';
-    $priorite = isset($_POST['priorite']) ? trim($_POST['priorite']) : '';
-    $terminee = false;
-
-    $erreurs = [];
-
-    if ($texte === '' || !preg_match('/[a-zA-Z0-9]/u', $texte)) {
-        $erreurs[] = "Le champ de tâche est vide ou invalide.";
-    } elseif (mb_strlen($texte) > 100) {
-        $erreurs[] = "La tâche est trop longue (100 caractères max).";
-    }
-
-    $prioritesValides = ['normale', 'importante', 'urgente'];
-    if (!in_array($priorite, $prioritesValides)) {
-        $erreurs[] = "La priorité choisie est invalide.";
-    }
-
-    if (empty($erreurs)) {
-        $nouvelleTache = new Tache($texte, $priorite, $terminee);
-        $taches[] = $nouvelleTache;
-        $storage->enregistrer($taches);
-        $_SESSION['message'] = "✅ Tâche ajoutée avec succès.";
-    } else {
-        $_SESSION['message'] = "⚠️ " . implode(' ', $erreurs);
-    }
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter']) && !empty($_POST['texte'])) {
+    $texte = $_POST['texte'];
+    $priorite = $_POST['priorite'] ?? 'normale';
+    $terminee = 0;
+    $tache = new Tache(null, $texte, $priorite, $terminee);
+    $storage->creer($tache);
+    header("Location: index.php?message=ajout");
+    exit();
 }
 
-if (isset($_GET['supprimer'])) {
-    $indexASupprimer = (int) $_GET['supprimer'];
-    if (isset($taches[$indexASupprimer])) {
-        unset($taches[$indexASupprimer]);
-        $taches = array_values($taches);
-        $storage->enregistrer($taches);
-        $_SESSION['message'] = "🗑️ Tâche supprimée.";
-    }
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['supprimer'])) {
+    $id = $_GET['supprimer'];
+    $storage->supprimer($id);
+    header("Location: index.php?message=suppression");
+    exit();
 }
+
+if (isset($_GET['message'])) {
+    $message = match($_GET['message']) {
+        'ajout' => "Tâche ajoutée avec succès.",
+        'suppression' => "Tâche supprimée avec succès.",
+        default => ""
+    };
+}
+
+$taches = $storage->lireToutes();
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Ma To-Do List</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Todo List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="main.js" defer></script>
 </head>
-<body>
-    <h1>📝 Ma liste de tâches</h1>
+<body class="bg-gray-100 px-4 sm:px-8 py-6 max-w-2xl mx-auto font-sans">
 
-    <?php if (isset($_SESSION['message'])): ?>
-        <p class="message"><?= $_SESSION['message'] ?></p>
-        <?php unset($_SESSION['message']); ?>
-    <?php endif; ?>
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Ma Todo List</h1>
 
-    <form method="POST">
-        <input type="text" name="tache" placeholder="Ajouter une tâche" required>
-        <select name="priorite" required>
-            <option value="normale">🟢 Normale</option>
-            <option value="importante">🟡 Importante</option>
-            <option value="urgente">🔴 Urgente</option>
-        </select>
-        <button type="submit">Ajouter</button>
-    </form>
+  <?php if (!empty($message)) : ?>
+    <div class="message mb-4 p-4 bg-green-100 text-green-800 font-semibold border-l-4 border-green-500 rounded shadow">
+      <?= htmlspecialchars($message) ?>
+    </div>
+    <script>
+      // Nettoyage de l'URL et disparition du message après 2 secondes
+      if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.pathname);
+      }
+      setTimeout(() => {
+        const msg = document.querySelector('.message');
+        if (msg) msg.remove();
+      }, 2000);
+    </script>
+  <?php endif; ?>
 
+  <form action="" method="post" class="mb-6 flex flex-col sm:flex-row gap-2">
+    <input type="text" name="texte" placeholder="Ajouter une tâche..." class="w-full p-2 text-base border border-gray-300 rounded" required>
+    <select name="priorite" class="w-full sm:w-auto p-2 border border-gray-300 rounded">
+      <option value="normale">Normale</option>
+      <option value="importante">Importante</option>
+      <option value="urgente">Urgente</option>
+    </select>
+    <button type="submit" name="ajouter" class="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Ajouter</button>
+  </form>
 
+  <input type="text" id="recherche" placeholder="Rechercher une tâche..." class="w-full p-2 text-base mb-4 border border-gray-300 rounded">
 
+  <div class="tri mb-4 flex flex-col sm:flex-row gap-2">
+    <button data-tri="texte" class="px-3 py-1 bg-gray-200 border border-gray-300 rounded text-sm hover:bg-gray-300">Trier A → Z</button>
+    <button data-tri="priorite" class="px-3 py-1 bg-gray-200 border border-gray-300 rounded text-sm hover:bg-gray-300">Trier par priorité</button>
+  </div>
 
-   <ul class="taches">
-    <?php foreach ($taches as $index => $tache) : ?>
-        <li class="tache <?= 'priorite-' . htmlspecialchars($tache->getPriorite()) ?> <?= $tache->estTerminee() ? 'terminee' : '' ?>">
-            <input 
-                type="checkbox"
-                class="checkbox-terminee"
-                data-id="<?= $tache->getId() ?>"
-                <?= $tache->estTerminee() ? 'checked' : '' ?>
-            >
-            <span class="texte">
-                <?= htmlspecialchars($tache->getTexte()) ?>
-            </span>
-            <a href="?supprimer=<?= $index ?>">🗑️</a>
-        </li>
-    <?php endforeach; ?>
+  <ul class="taches space-y-3 text-sm sm:text-base">
+  <?php foreach ($taches as $index => $tache): ?>
+    <?php
+      $prio = $tache->getPriorite();
+      $classePriorite = match($prio) {
+          'urgente' => 'border-red-500',
+          'importante' => 'border-yellow-400',
+          default => 'border-green-500'
+      };
+      $textePriorite = match($prio) {
+          'urgente' => '🔥 Urgente',
+          'importante' => '⚠️ Importante',
+          default => '✅ Normale'
+      };
+      $couleurPriorite = match($prio) {
+          'urgente' => 'text-red-600',
+          'importante' => 'text-yellow-500',
+          default => 'text-green-600'
+      };
+    ?>
+    <li class="tache flex items-center justify-between bg-white p-3 rounded shadow border-l-4 <?= $classePriorite ?> <?= $tache->estTerminee() ? 'opacity-60' : '' ?>"
+        data-priorite="<?= $prio ?>">
+      
+      <div class="flex items-center gap-4 w-full">
+        <!-- Priorité (icône + texte) -->
+        <span class="text-xs font-semibold <?= $couleurPriorite ?> min-w-[90px]">
+          <?= $textePriorite ?>
+        </span>
+
+        <!-- Checkbox + texte -->
+        <input type="checkbox" class="checkbox-terminee w-5 h-5 accent-green-600"
+               data-id="<?= $tache->getId() ?>"
+               <?= $tache->estTerminee() ? 'checked' : '' ?>>
+
+        <span class="texte flex-grow break-words text-base leading-normal max-w-[80%] <?= $tache->estTerminee() ? 'line-through text-gray-500' : 'text-gray-900' ?>">
+  <?= htmlspecialchars($tache->getTexte()) ?>
+</span>
+
+      </div>
+
+      <a href="?supprimer=<?= $tache->getId() ?>"
+   title="Supprimer cette tâche"
+   class="text-red-500 hover:text-red-700 p-2 rounded transition-colors duration-200"
+   aria-label="Supprimer">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 3h4a1 1 0 011 1v1H9V4a1 1 0 011-1z" />
+  </svg>
+</a>
+
+    </li>
+  <?php endforeach; ?>
 </ul>
 
+<!-- Modale de confirmation -->
+<div id="modal-confirm" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">Supprimer la tâche ?</h2>
+    <p class="text-sm text-gray-600 mb-4">Cette action est irréversible.</p>
+    <div class="flex justify-center gap-4">
+      <button id="cancel-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">Annuler</button>
+      <a id="confirm-btn" href="#" class="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded">Supprimer</a>
+    </div>
+  </div>
+</div>
 
 
-
-
-
-    <script src="main.js"></script>
 </body>
 </html>
+
 
 
 
