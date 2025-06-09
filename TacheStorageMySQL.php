@@ -43,7 +43,7 @@ class TacheStorageMySQL {
         $stmt->execute([':id' => $id]);
     }
 
-    // ✅ Nouvelle méthode pour mise à jour AJAX
+    // ✅ Mise à jour du statut terminée
     public function marquerCommeTerminee($id, $terminee) {
         $stmt = $this->pdo->prepare("UPDATE taches SET terminee = :terminee WHERE id = :id");
         $stmt->execute([
@@ -52,14 +52,20 @@ class TacheStorageMySQL {
         ]);
     }
 
+    // ✅ Modifier le texte d'une tâche
     public function modifierTexte($id, $texte) {
-    $stmt = $this->pdo->prepare("UPDATE taches SET texte = :texte WHERE id = :id");
-    $stmt->execute([
-        ':texte' => $texte,
-        ':id' => $id
-    ]);
-}
+        $stmt = $this->pdo->prepare("UPDATE taches SET texte = :texte WHERE id = :id");
+        $stmt->execute([
+            ':texte' => $texte,
+            ':id' => $id
+        ]);
+    }
 
+    // ✅ Supprimer toutes les tâches terminées
+    public function supprimerTachesTerminees() {
+        $query = "DELETE FROM taches WHERE terminee = 1";
+        $this->pdo->exec($query);
+    }
 }
 
 

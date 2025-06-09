@@ -1,12 +1,10 @@
 const app = {
-  taches: [],
-
   init: function () {
-    this.taches = Array.from(document.querySelectorAll('.tache'));
     this.initEditionInline();
     this.initStatut();
     this.initRecherche();
     this.initTri();
+    this.initDeleteAllModal();
   },
 
   initEditionInline: function () {
@@ -14,17 +12,20 @@ const app = {
       texteEl.addEventListener('dblclick', () => {
         const ancienTexte = texteEl.textContent.trim();
         const input = document.createElement('input');
-input.type = 'text';
-input.value = ancienTexte;
-input.className = 'w-full p-1 border rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 transition';
-
+        input.type = 'text';
+        input.value = ancienTexte;
+        input.className = 'w-full p-1 border rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 transition';
 
         texteEl.replaceWith(input);
         input.focus();
 
         input.addEventListener('blur', () => {
           const nouveauTexte = input.value.trim();
-          const id = input.closest('.tache').querySelector('.checkbox-terminee').dataset.id;
+          const parentTache = input.closest('.tache');
+          const checkbox = parentTache ? parentTache.querySelector('.checkbox-terminee') : null;
+          const id = checkbox ? checkbox.dataset.id : null;
+
+          if (!id) return;
 
           fetch('update-texte.php', {
             method: 'POST',
@@ -50,57 +51,134 @@ input.className = 'w-full p-1 border rounded bg-white text-gray-900 dark:bg-gray
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           body: 'id=' + encodeURIComponent(id) + '&terminee=' + encodeURIComponent(terminee)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const tache = checkbox.closest('.tache');
+            const texte = tache.querySelector('.texte');
+
+            if (terminee) {
+              tache.classList.add('terminee', 'opacity-60');
+              if (texte) texte.classList.add('line-through');
+            } else {
+              tache.classList.remove('terminee', 'opacity-60');
+              if (texte) texte.classList.remove('line-through');
+            }
+          }
         });
       });
     });
   },
 
   initRecherche: function () {
-    const champ = document.getElementById('recherche');
-    if (!champ) return;
-    champ.addEventListener('input', () => {
-      const valeur = champ.value.toLowerCase();
-      this.taches.forEach(tache => {
-        const texte = tache.querySelector('.texte').textContent.toLowerCase();
-        tache.style.display = texte.includes(valeur) ? '' : 'none';
-      });
+  const champ = document.getElementById('recherche');
+  if (!champ) return;
+
+  // ▼ fonction utilitaire : on garde uniquement lettres/chiffres, sans accents
+  const nettoyer = (txt) =>
+    txt
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')   // accents → e, a, o…
+      .replace(/[^\w\s]/g, '')           // retire ponctuation & invisi­bles
+      .replace(/\s+/g, ' ')              // espaces multiples → 1 espace
+      .trim();
+
+  const filtrer = () => {
+    const valeur = nettoyer(champ.value);          // texte tapé normalisé
+    const taches = document.querySelectorAll('ul.taches > li.tache');
+
+    taches.forEach((tache) => {
+      const texteEl = tache.querySelector('.texte');
+      if (!texteEl) return;
+
+      const contenu = nettoyer(texteEl.textContent); // texte de la tâche
+
+      /* — affichage — */
+      if (valeur === '' || contenu.includes(valeur)) {
+        // on enlève TOUT ce qui pourrait masquer l’élément
+        tache.classList.remove('hidden');
+        tache.style.display = '';          // vide l’éventuel display:none inline
+      } else {
+        tache.classList.add('hidden');     // classe Tailwind = display:none
+        tache.style.display = 'none';      // assure qu’il est vraiment masqué
+      }
     });
-  },
+  };
+
+  /* événements */
+  champ.addEventListener('input', filtrer);
+  champ.addEventListener('keyup', filtrer);
+
+  /* premier appel : liste complète visible au chargement */
+  filtrer();
+},
+
+
+
 
   initTri: function () {
     document.querySelectorAll('[data-tri]').forEach(bouton => {
       bouton.addEventListener('click', () => {
         const critere = bouton.getAttribute('data-tri');
-        this.trier(critere);
+        const liste = document.querySelector('ul.taches');
+        const items = Array.from(liste.querySelectorAll('li.tache'));
+
+        const getTexte = (el) => el.querySelector('.texte').textContent.toLowerCase();
+        const getPriorite = (el) => {
+          const priorite = el.dataset.priorite;
+          const ordre = ['urgente', 'importante', 'normale'];
+          return ordre.indexOf(priorite);
+        };
+
+        const getter = critere === 'texte' ? getTexte : getPriorite;
+
+        items.sort((a, b) => {
+          const valA = getter(a);
+          const valB = getter(b);
+          return valA > valB ? 1 : valA < valB ? -1 : 0;
+        });
+
+        items.forEach(item => liste.appendChild(item));
       });
     });
   },
 
-  trier: function (type) {
-    const getTexte = (el) => el.querySelector('.texte').textContent.toLowerCase();
-    const getPriorite = (el) => {
-      const priorite = el.dataset.priorite;
-      const ordre = ['urgente', 'importante', 'normale'];
-      return ordre.indexOf(priorite);
-    };
+  initDeleteAllModal: function () {
+    const modal = document.getElementById("modal-delete-all");
+    const confirmBtn = document.getElementById("confirm-delete-all");
+    const cancelBtn = document.getElementById("cancel-delete-all");
+    const triggerBtn = document.getElementById("delete-all-completed");
 
-    const getter = type === 'texte' ? getTexte : getPriorite;
+    if (!modal || !confirmBtn || !cancelBtn || !triggerBtn) return;
 
-    this.taches.sort((a, b) => {
-      const valA = getter(a);
-      const valB = getter(b);
-      return valA > valB ? 1 : valA < valB ? -1 : 0;
+    triggerBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
     });
 
-    const parent = this.taches[0].parentNode;
-    this.taches.forEach(tache => parent.appendChild(tache));
+    cancelBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    confirmBtn.addEventListener("click", () => {
+      fetch("delete-all-completed.php", {
+        method: "POST",
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          document.querySelectorAll('.tache.terminee').forEach(tache => tache.remove());
+          modal.classList.add("hidden");
+        }
+      });
+    });
   }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   app.init();
 
-  // Gestion du thème sombre
   const html = document.documentElement;
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme === 'dark') {
@@ -116,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Modale de confirmation de suppression
   document.querySelectorAll('a[href*="supprimer="]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -137,6 +214,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
+
+
+
+
 
 
 
