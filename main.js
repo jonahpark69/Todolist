@@ -1,4 +1,4 @@
-app = {
+const app = {
   taches: [],
 
   init: function () {
@@ -14,9 +14,10 @@ app = {
       texteEl.addEventListener('dblclick', () => {
         const ancienTexte = texteEl.textContent.trim();
         const input = document.createElement('input');
-        input.type = 'text';
-        input.value = ancienTexte;
-        input.className = 'border border-gray-300 rounded p-1 w-full';
+input.type = 'text';
+input.value = ancienTexte;
+input.className = 'w-full p-1 border rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white border-gray-300 dark:border-gray-600 transition';
+
 
         texteEl.replaceWith(input);
         input.focus();
@@ -31,8 +32,7 @@ app = {
               'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: 'id=' + encodeURIComponent(id) + '&texte=' + encodeURIComponent(nouveauTexte)
-          })
-          .then(() => location.reload());
+          }).then(() => location.reload());
         });
       });
     });
@@ -57,6 +57,7 @@ app = {
 
   initRecherche: function () {
     const champ = document.getElementById('recherche');
+    if (!champ) return;
     champ.addEventListener('input', () => {
       const valeur = champ.value.toLowerCase();
       this.taches.forEach(tache => {
@@ -96,26 +97,49 @@ app = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => app.init());
+document.addEventListener('DOMContentLoaded', () => {
+  app.init();
 
+  // Gestion du thème sombre
+  const html = document.documentElement;
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    html.classList.add('dark');
+  }
 
-// Confirmation personnalisée avec modale
-document.querySelectorAll('a[href*="supprimer="]').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const url = link.getAttribute('href');
-    const modal = document.getElementById('modal-confirm');
-    const confirmBtn = document.getElementById('confirm-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
+  const toggleBtn = document.getElementById('toggle-theme');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      const newTheme = html.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+    });
+  }
 
-    confirmBtn.setAttribute('href', url);
-    modal.classList.remove('hidden');
+  // Modale de confirmation de suppression
+  document.querySelectorAll('a[href*="supprimer="]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = link.getAttribute('href');
+      const modal = document.getElementById('modal-confirm');
+      const confirmBtn = document.getElementById('confirm-btn');
+      const cancelBtn = document.getElementById('cancel-btn');
 
-    cancelBtn.onclick = () => {
-      modal.classList.add('hidden');
-      confirmBtn.setAttribute('href', '#');
-    };
+      if (!modal || !confirmBtn || !cancelBtn) return;
+
+      confirmBtn.setAttribute('href', url);
+      modal.classList.remove('hidden');
+
+      cancelBtn.onclick = () => {
+        modal.classList.add('hidden');
+        confirmBtn.setAttribute('href', '#');
+      };
+    });
   });
 });
+
+
+
+
 
 
