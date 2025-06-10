@@ -13,9 +13,10 @@ class TacheStorageMySQL {
         );
     }
 
+    /* ─────────────── RÉCUPÉRER TOUTES LES TÂCHES ─────────────── */
     public function lireToutes() {
         $taches = [];
-        $query = $this->pdo->query("SELECT * FROM taches");
+        $query  = $this->pdo->query("SELECT * FROM taches");
         while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
             $taches[] = new Tache(
                 $row['id'],
@@ -27,46 +28,62 @@ class TacheStorageMySQL {
         return $taches;
     }
 
+    /* ─────────────── CRÉER UNE TÂCHE ─────────────── */
     public function creer(Tache $tache) {
-        $stmt = $this->pdo->prepare("INSERT INTO taches (texte, priorite, terminee) VALUES (:texte, :priorite, :terminee)");
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO taches (texte, priorite, terminee)
+             VALUES (:texte, :priorite, :terminee)"
+        );
         $stmt->execute([
-            ':texte' => $tache->getTexte(),
-            ':priorite' => $tache->getPriorite(),
-            ':terminee' => $tache->estTerminee()
+            ':texte'     => $tache->getTexte(),
+            ':priorite'  => $tache->getPriorite(),
+            ':terminee'  => $tache->estTerminee()
         ]);
         $tache->setId($this->pdo->lastInsertId());
         return $tache;
     }
 
+    /* ─────────────── SUPPRIMER UNE TÂCHE ─────────────── */
     public function supprimer($id) {
         $stmt = $this->pdo->prepare("DELETE FROM taches WHERE id = :id");
         $stmt->execute([':id' => $id]);
     }
 
-    // ✅ Mise à jour du statut terminée
+    /* ─────────────── METTRE À JOUR « TERMINÉE » ─────────────── */
     public function marquerCommeTerminee($id, $terminee) {
-        $stmt = $this->pdo->prepare("UPDATE taches SET terminee = :terminee WHERE id = :id");
+        $stmt = $this->pdo->prepare(
+            "UPDATE taches SET terminee = :terminee WHERE id = :id"
+        );
         $stmt->execute([
             ':terminee' => $terminee,
-            ':id' => $id
+            ':id'       => $id
         ]);
     }
 
-    // ✅ Modifier le texte d'une tâche
+    /* ─────────────── MODIFIER LE TEXTE ─────────────── */
     public function modifierTexte($id, $texte) {
-        $stmt = $this->pdo->prepare("UPDATE taches SET texte = :texte WHERE id = :id");
+        $stmt = $this->pdo->prepare(
+            "UPDATE taches SET texte = :texte WHERE id = :id"
+        );
         $stmt->execute([
             ':texte' => $texte,
-            ':id' => $id
+            ':id'    => $id
         ]);
     }
 
-    // ✅ Supprimer toutes les tâches terminées
+    /* ─────────────── SUPPRIMER TOUTES LES TERMINÉES (historique) ─────────────── */
     public function supprimerTachesTerminees() {
-        $query = "DELETE FROM taches WHERE terminee = 1";
-        $this->pdo->exec($query);
+        $this->pdo->exec("DELETE FROM taches WHERE terminee = 1");
+    }
+
+    /* ─────────────── NOUVELLE MÉTHODE JOUR 6 ÉTAPE 3 ───────────────
+       • Alias lisible pour l’endpoint delete-all-completed.php
+       • Appelle simplement la méthode historique ci-dessus.                */
+    public function supprimerToutesTerminees() {
+        $this->supprimerTachesTerminees();
     }
 }
+
 
 
 
