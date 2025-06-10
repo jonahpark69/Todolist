@@ -59,58 +59,86 @@ const app = {
   },
 
   /* -------------------- STATUT TERMINÉE -------------------- */
-  initStatut: function () {
-    document.querySelectorAll('.checkbox-terminee').forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        const id       = checkbox.dataset.id;
-        const terminee = checkbox.checked ? 1 : 0;
+ initStatut: function () {
+  document.querySelectorAll('.checkbox-terminee').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      const id       = checkbox.dataset.id;
+      const terminee = checkbox.checked ? 1 : 0;
 
-        fetch('update-terminee.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `id=${encodeURIComponent(id)}&terminee=${encodeURIComponent(terminee)}`,
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.success) {
-              const tache = checkbox.closest('.tache');
-              const texte = tache.querySelector('.texte');
-              tache.classList.toggle('terminee', !!terminee);
-              tache.classList.toggle('opacity-60', !!terminee);
-              texte?.classList.toggle('line-through', !!terminee);
+      fetch('update-terminee.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `id=${encodeURIComponent(id)}&terminee=${encodeURIComponent(terminee)}`,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            const tache = checkbox.closest('.tache');
+            const texte = tache.querySelector('.texte');
+            tache.classList.toggle('terminee', !!terminee);
+            tache.classList.toggle('opacity-60', !!terminee);
+            texte?.classList.toggle('line-through', !!terminee);
+
+            // ✅ Animation uniquement quand la case est cochée
+            if (terminee === 1) {
+              showSuccess();
             }
-          });
-      });
+          }
+        });
     });
-  },
+  });
+},
 
-  /* -------------------- RECHERCHE TEMPS RÉEL -------------------- */
-  initRecherche: function () {
-    const champ = document.getElementById('recherche');
-    if (!champ) return;
 
-    const nettoyer = (txt) =>
-      txt
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^\w\s]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+/* -------------------- RECHERCHE TEMPS RÉEL -------------------- */
+initRecherche: function () {
+  const champ = document.getElementById('recherche');
+  if (!champ) return;
 
-    const filtrer = () => {
-      const valeur = nettoyer(champ.value);
-      document.querySelectorAll('ul.taches > li.tache').forEach((tache) => {
-        const contenu = nettoyer(tache.querySelector('.texte')?.textContent || '');
-        const visible = valeur === '' || contenu.includes(valeur);
-        tache.classList.toggle('hidden', !visible);
-        tache.style.display = visible ? '' : 'none';
-      });
-    };
+  /* Nettoyage : minuscules, sans accents ni ponctuation, espaces simples */
+  const nettoyer = (txt) =>
+    txt
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')  // accents
+      .replace(/[^\w\s]/g, '')          // ponctuation
+      .replace(/\s+/g, ' ')             // espaces multiples
+      .trim();
 
-    champ.addEventListener('input', filtrer);
-    filtrer();
-  },
+  const filtrer = () => {
+    const valeur = nettoyer(champ.value);
+    const liste  = document.querySelector('ul.taches');
+    const visibles   = [];
+    const invisibles = [];
+
+    /* Parcourt chaque tâche et décide si elle reste visible */
+    liste.querySelectorAll('li.tache').forEach((tache) => {
+      const contenu = nettoyer(tache.querySelector('.texte')?.textContent || '');
+      const visible = valeur === '' || contenu.includes(valeur);
+
+      tache.classList.toggle('hidden', !visible);
+      tache.style.display = visible ? '' : 'none';
+
+      (visible ? visibles : invisibles).push(tache);
+    });
+
+    /* ➜ Place d'abord les tâches visibles en haut de la liste */
+    [...visibles, ...invisibles].forEach((el) => liste.appendChild(el));
+
+    /* ➜ Remonte la liste pour que l’utilisateur voie immédiatement le résultat */
+    liste.scrollTop = 0;
+  };
+
+  /* Un seul écouteur suffit */
+  champ.addEventListener('input', filtrer);
+
+  /* Appel initial pour afficher la liste complète */
+  filtrer();
+},
+
+
+
+
 
   /* -------------------- TRI A→Z / PRIORITÉ / DATE -------------------- */
   initTri: function () {
@@ -134,28 +162,50 @@ const app = {
     });
   },
 
-  /* -------------------- LISTE vs GRILLE -------------------- */
-  initVueGrille: function () {
-    const btn  = document.getElementById('toggleVue');
-    const list = document.getElementById('liste-taches');
-    if (!btn || !list) return;
+/* -------------------- LISTE vs GRILLE -------------------- */
+initVueGrille: function () {
+  const btn  = document.getElementById('toggleVue');
+  const list = document.getElementById('liste-taches');
+  if (!btn || !list) return;
 
-    const toGrid = () => {
-      list.classList.remove('flex', 'flex-col');
-      list.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3');
-      btn.textContent = 'Vue Liste';
-      localStorage.setItem('vueTaches', 'grille');
-    };
-    const toList = () => {
-      list.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3');
-      list.classList.add('flex', 'flex-col');
-      btn.textContent = 'Vue Grille';
-      localStorage.setItem('vueTaches', 'liste');
-    };
+  /* -------- Vue Grille -------- */
+const toGrid = () => {
+  list.classList.remove('flex', 'flex-col');
+  list.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
 
-    btn.addEventListener('click', () => (list.classList.contains('flex') ? toGrid() : toList()));
-    localStorage.getItem('vueTaches') === 'grille' ? toGrid() : toList();
-  },
+  list.querySelectorAll('.tache').forEach((li) => {
+    li.classList.remove('flex-row', 'justify-between');          //  ⟵ on retire
+    li.classList.add   ('flex-col', 'gap-2', 'items-start');      //  ⟵ plus de h-full
+  });
+
+  btn.textContent = 'Vue Liste';
+  localStorage.setItem('vueTaches', 'grille');
+};
+
+/* -------- Vue Liste -------- */
+const toList = () => {
+  list.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'lg:grid-cols-3', 'gap-4');
+  list.classList.add('flex', 'flex-col');
+
+  list.querySelectorAll('.tache').forEach((li) => {
+    li.classList.remove('flex-col', 'gap-2', 'items-start');
+    li.classList.add   ('flex-row', 'justify-between');
+  });
+
+  btn.textContent = 'Vue Grille';
+  localStorage.setItem('vueTaches', 'liste');
+};
+
+
+  /* -------- Toggle & état initial -------- */
+  btn.addEventListener('click', () =>
+    list.classList.contains('flex') ? toGrid() : toList()
+  );
+
+  localStorage.getItem('vueTaches') === 'grille' ? toGrid() : toList();
+},
+
+
 
   /* ------------------------------------------------------------------
    *  JOUR 6 • ÉTAPE 3  → Suppression groupée des tâches terminées

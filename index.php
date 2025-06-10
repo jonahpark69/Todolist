@@ -50,8 +50,11 @@ $taches = $storage->lireToutes();
     tailwind.config = { darkMode: 'class' };
   </script>
 
-  <!-- 3. Ton JS applicatif  -->
-  <script src="main.js" defer></script>
+
+
+
+ 
+
 </head>
 
 
@@ -110,7 +113,9 @@ $taches = $storage->lireToutes();
     </div>
 
     <!-- ▸ LISTE DES TÂCHES -->
-    <div id="liste-taches" class="flex flex-col gap-4 transition-all duration-300">
+    <div id="liste-taches"
+     class="flex flex-col gap-4 transition-all duration-300 pb-24">
+
       <ul class="taches space-y-3">
         <?php foreach ($taches as $tache): ?>
           <?php
@@ -131,7 +136,8 @@ $taches = $storage->lireToutes();
               default      => 'text-green-600'
             };
           ?>
-          <li class="tache flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded shadow border-l-4 <?= $classePriorite ?> <?= $tache->estTerminee() ? 'opacity-60 line-through terminee' : '' ?>" data-priorite="<?= $prio ?>">
+          <li class="tache flex flex-row items-center justify-between bg-white dark:bg-gray-800 p-3 rounded shadow border-l-4 <?= $classePriorite ?> <?= $tache->estTerminee() ? 'opacity-60 line-through terminee' : '' ?>" data-priorite="<?= $prio ?>">
+
             <div class="flex items-center gap-4 w-full">
               <span class="text-xs font-semibold <?= $couleurPriorite ?> min-w-[90px]"><?= $textePriorite ?></span>
 
@@ -142,7 +148,9 @@ $taches = $storage->lireToutes();
               </span>
             </div>
 
-            <a href="?supprimer=<?= $tache->getId() ?>" class="text-red-500 hover:text-red-700 p-2 rounded transition-colors duration-200" title="Supprimer" aria-label="Supprimer">
+            <a href="?supprimer=<?= $tache->getId() ?>"
+               class="text-red-500 hover:text-red-700 p-2 rounded transition-colors duration-200 self-end ml-auto"
+               title="Supprimer" aria-label="Supprimer">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M10 3h4a1 1 0 011 1v1H9V4a1 1 0 011-1z" />
               </svg>
@@ -182,6 +190,32 @@ $taches = $storage->lireToutes();
       </div>
     </div>
   </div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script src="success.js" defer></script>
+<script src="main.js" defer></script>
+
+
+<div id="successOverlay"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-transparent"
+     role="status" aria-live="polite">
+  
+  <!-- ✔️ -->
+  <svg id="successTick"
+       class="w-24 h-24 text-green-500 opacity-0 transition-all duration-500"
+       viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 6 9 17l-5-5"/>
+  </svg>
+
+  <!-- 🎉 Canvas confetti -->
+  <canvas id="confettiCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+</div>
+
+
+
+
 
 </body>
 </html>
