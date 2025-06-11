@@ -1,6 +1,0 @@
-Réviser PHP|normale
-Boire un café|urgente
-Créer une to-do list|normale
-Aller chercher du pain|normale
-Apprendre le coréen|importante
-Faire les courses|urgente

@@ -1,80 +1,87 @@
-# 📝 Projet PHP – To-Do List
+# ✅ To-Do List – Projet PHP
 
-Ce projet est une application web simple développée en **PHP natif**, permettant à un utilisateur d’ajouter, afficher et supprimer des tâches via une interface claire et responsive.
-
----
-
-## 🚀 Fonctionnalités
-
-- ✅ Ajout de tâches avec niveau de priorité (normale, importante, urgente)
-- 🗑️ Suppression individuelle de tâches
-- 💾 Sauvegarde locale dans un fichier `.txt` (pas de base de données)
-- 🔁 Protection contre les doublons via le pattern PRG (Post/Redirect/Get)
-- ✨ Affichage dynamique avec design responsive CSS
-- 🔒 Validation des entrées (anti-XSS, anti-champs vides)
-- ✅ Code structuré en POO, prêt pour migration vers une base de données
+Ce projet est une application web de gestion de tâches, développée en **PHP natif** avec une base de données **MySQL**, un design **responsive avec Tailwind CSS**, et des interactions modernes via **JavaScript et AJAX**.
 
 ---
 
-## 🧱 Structure du projet
+## 🚀 Fonctionnalités principales
 
-Todolist/
-├── index.php # Page principale (formulaire + logique)
-├── taches.php # Gestion du stockage des tâches (POO)
-├── style.css # Feuille de styles
-├── script.js # JS léger pour animations frontend
-├── data/
-│ └── taches.txt # Fichier de sauvegarde des tâches
-├── .gitignore # Exclusion du fichier de données
-└── README.md # Documentation du projet
-
+- ✅ Ajout de tâches avec priorité (normale, importante, urgente)
+- ✏️ Modification d'une tâche par double-clic (édition inline)
+- ☑️ Marquage d'une tâche comme terminée (avec animation ✔️ + confettis)
+- 🗑️ Suppression individuelle (avec modale de confirmation)
+- 🧹 Suppression groupée des tâches terminées (via modale AJAX)
+- 🔍 Recherche temps réel
+- 🔃 Tri des tâches (par nom ou priorité)
+- 🌓 Mode sombre (Dark mode)
+- 🧱 Vue liste ↔ vue grille
 
 ---
 
 ## ⚙️ Technologies utilisées
 
-- 🐘 PHP (sans framework)
-- 🔤 HTML5 / CSS3
-- 📄 Fichier `.txt` pour le stockage
-- 🌐 Serveur local : **MAMP (Mac)**
+- 🐘 PHP (POO, natif, sans framework)
+- 🗄️ MySQL avec PDO pour le stockage des tâches
+- 🧠 JavaScript (DOM, fetch/AJAX, animations)
+- 🎨 Tailwind CSS (via CDN)
+- 🔧 Git + GitHub Desktop
+- 🌐 Serveur local MAMP (Mac)
 
 ---
 
-## 💻 Installation & lancement
+## 📁 Structure du projet
 
-1. Cloner ce dépôt dans votre répertoire `php-projects`
-2. Ouvrir **MAMP** et vérifier que le `Document Root` pointe vers le bon dossier
-3. Démarrer les serveurs Apache
-4. Accéder à l’application via :
-
-http://localhost:8888/Todolist/
+Todolist/
+├── index.php # Page principale
+├── config.php # Connexion à la base de données
+├── TacheStorageMySQL.php # Classe de gestion des tâches en BDD (POO)
+├── update-terminee.php # Maj AJAX du statut "terminée"
+├── update-texte.php # Maj AJAX du texte d'une tâche
+├── delete-all-completed.php# Suppression groupée des tâches terminées
+├── main.js # JS principal : interactions, modales, tri...
+├── success.js # Animation ✔️ + confettis
+├── style.css # (supprimé - remplacé par Tailwind)
+├── README.md # Ce fichier
 
 
 ---
 
-## 💡 Pistes d’amélioration
+## 📦 Installation & lancement
 
-- ✅ Passage à une base de données MySQL via PDO
+1. Cloner ce dépôt dans votre dossier `php-projects`
+2. Ouvrir **MAMP** (ou équivalent) et pointer le `Document Root` vers ce dossier
+3. Vérifier la connexion MySQL dans `config.php`
+4. Importer la base de données si nécessaire
+5. Lancer le serveur Apache et accéder au projet via :  
+   👉 `http://localhost:8888/Todolist/`
+
+---
+
+## 💡 Pistes d'amélioration futures
+
+- 🔐 Authentification utilisateur
 - 📆 Ajout de dates limites ou deadlines
-- 🗂️ Catégorisation ou filtres de tâches
-- 🧑‍💼 Authentification utilisateur
-- 🌙 Ajout d’un mode sombre
-- 📱 Amélioration de l’UI avec Bootstrap ou Tailwind
+- 🗂️ Filtres avancés (par statut, date, catégorie)
+- 📱 Interface mobile améliorée
+- 🛠️ Refactorisation JS en modules
 
 ---
 
-## 👨‍💻 À propos
+## 🙋 À propos
 
-Ce projet a été réalisé dans le cadre de ma **préparation à un jobdating pour une alternance en développement web**, afin de démontrer mes compétences en :
+Ce projet a été conçu dans le cadre de ma préparation à un **jobdating pour une alternance en développement web**. Il m’a permis de mettre en pratique mes compétences en :
 
-- Programmation PHP orientée objet
-- Manipulation de fichiers
-- Structuration de projet modulaire
-- Logique back-end simple et sécurisée
+- Développement PHP orienté objet
+- Intégration MySQL sécurisée via PDO
+- Conception d’interfaces modernes et responsives
+- Interaction AJAX fluide et propre
+- Gestion de projet versionné avec Git & GitHub
 
 ---
 
-> Merci de votre lecture ! Si vous avez des suggestions ou feedbacks, je suis preneur 🙌
+> Merci pour votre lecture ! N’hésitez pas à me faire part de vos retours 🙌
+
+
 
 
 
