@@ -136,10 +136,6 @@ initRecherche: function () {
   filtrer();
 },
 
-
-
-
-
   /* -------------------- TRI A→Z / PRIORITÉ / DATE -------------------- */
   initTri: function () {
     document.querySelectorAll('[data-tri]').forEach((bouton) => {
@@ -204,8 +200,6 @@ const toList = () => {
 
   localStorage.getItem('vueTaches') === 'grille' ? toGrid() : toList();
 },
-
-
 
   /* ------------------------------------------------------------------
    *  JOUR 6 • ÉTAPE 3  → Suppression groupée des tâches terminées

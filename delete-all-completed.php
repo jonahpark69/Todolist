@@ -1,27 +1,33 @@
 <?php
 /**
- * delete-all-completed.php
- * Supprime en base toutes les tâches marquées comme terminées
- * et renvoie un JSON {success:true|false}.
+ * =====================================================
+ * Suppression groupée des tâches marquées comme terminées
+ * =====================================================
+ * Ce script est appelé via AJAX depuis le bouton "Supprimer toutes les tâches terminées".
+ * Il supprime en base toutes les tâches ayant le statut `terminee = 1`.
  */
 
-require_once 'TacheStorageMySQL.php';
+// Connexion à la base de données
+require_once 'config.php';
 
 header('Content-Type: application/json');
 
 try {
-    $storage = new TacheStorageMySQL();
-    // ► méthode à ajouter dans TacheStorageMySQL.php (voir plus bas)
-    $storage->supprimerToutesTerminees();
+    // Requête SQL : suppression des tâches terminées
+    $sql = "DELETE FROM taches WHERE terminee = 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
 
+    // Réponse JSON attendue par le script JS
     echo json_encode(['success' => true]);
-} catch (Throwable $e) {
-    http_response_code(500);
+} catch (PDOException $e) {
+    // En cas d’erreur SQL, on renvoie un message clair au client
     echo json_encode([
         'success' => false,
-        'error'   => $e->getMessage()
+        'error' => 'Erreur lors de la suppression : ' . $e->getMessage()
     ]);
 }
+
 
 
 
